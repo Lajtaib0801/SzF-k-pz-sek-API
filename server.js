@@ -1,6 +1,7 @@
 const express = require('express')
 const morgan = require('morgan')
 const trainings = require('./routes/trainings')
+const errorHandler = require('./middleware/error')
 require('dotenv').config() // A .env fájlt olvassa
 const app = express()
 app.listen(process.env.PORT, () =>
@@ -28,3 +29,4 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 app.use('/api/trainings', trainings)
+app.use(errorHandler)
