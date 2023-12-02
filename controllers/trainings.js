@@ -10,7 +10,7 @@ exports.getTrainings = async (req, res, next) => {
         res.status(201).json({ success: true, data: trainings })
     } catch (error) {
         // res.status(400).json({ success: false })
-        next(customError('No trainings found!', 400))
+        next(error)
     }
 } // @desc   Get single training
 // @route  GET /api/trainings/:id
@@ -19,11 +19,12 @@ exports.getTraining = async (req, res, next) => {
     try {
         const training = await Training.findById(req.params.id)
         if (!training) {
-            return next(customError(`No training found with id: ${req.params.id}`, 404))
+            return res.status(400).json({ success: false, msg: 'Not found' })
         }
+
         res.status(200).json({ success: true, data: training })
     } catch (error) {
-        next(customError(`No training found with id: ${req.params.id}`, 404))
+        next(error)
     }
 } // @desc   Create new training
 // @route  POST /api/trainings
