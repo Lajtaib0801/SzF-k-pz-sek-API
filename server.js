@@ -4,9 +4,7 @@ const trainings = require('./routes/trainings')
 const errorHandler = require('./middleware/error')
 require('dotenv').config() // A .env fájlt olvassa
 const app = express()
-app.listen(process.env.PORT, () =>
-    console.log(`Server is running on port ${process.env.PORT}`)
-)
+app.listen(process.env.PORT, () => console.log(`Server is running on port ${process.env.PORT}`))
 const mongoose = require('mongoose')
 mongoose.set('strictQuery', true)
 const mongoString = process.env.DATABASE_URL
