@@ -13,13 +13,38 @@ exports.getTraining = async (req, res, next) => {
 
 exports.getTrainings = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 2
+        const startIndex = (page - 1) * limit
+        const endIndex = (limit - 1) * page
+        const total = (limit - 1) * page + 1
         let query
         let queryStr = JSON.stringify(req.query)
         queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`)
 
         query = Training.find(JSON.parse(queryStr))
-        const trainings = await query
-        res.status(200).json({ success: true, count: trainings.length, data: trainings })
+        query = query.skip(startIndex).limit(limit)
+
+        const pagination = {}
+        if (startIndex > 0) {
+            pagination.prev = {
+                page: page - 1,
+                limit,
+            }
+        }
+        if (endIndex < total) {
+            pagination.next = {
+                page: page + 1,
+                limit,
+            }
+        }
+        const courses = await query
+        res.status(200).json({
+            success: true,
+            count: courses.length,
+            pagination,
+            data: courses,
+        })
     } catch (error) {
         next(error)
     }
