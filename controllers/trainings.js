@@ -1,79 +1,73 @@
-const { default: mongoose } = require('mongoose')
-const customError = require('../utils/errorResponse')
 const Training = require('../models/Training')
+const ErrorResponse = require('../utils/errorResponse')
 
-exports.getTraining = async (req, res, next) => {
-    try {
-        const trainings = await Training.findOne(req.query)
-        res.status(201).json({ success: true, data: trainings })
-    } catch (error) {
-        next(error)
-    }
-}
-
+// @desc   Get all trainings
+// @route  GET /api/trainings
+// @access Public
 exports.getTrainings = async (req, res, next) => {
     try {
-        const page = parseInt(req.query.page) || 1
-        const limit = parseInt(req.query.limit) || 2
-        const startIndex = (page - 1) * limit
-        const endIndex = (limit - 1) * page
-        const total = (limit - 1) * page + 1
         let query
         let queryStr = JSON.stringify(req.query)
+        // Kicseréljük a query-ben lévő lte sztringet $lte-re
         queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`)
 
         query = Training.find(JSON.parse(queryStr))
-        query = query.skip(startIndex).limit(limit)
+        const trainings = await query
 
-        const pagination = {}
-        if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit,
-            }
-        }
-        if (endIndex < total) {
-            pagination.next = {
-                page: page + 1,
-                limit,
-            }
-        }
-        const courses = await query
-        res.status(200).json({
-            success: true,
-            count: courses.length,
-            pagination,
-            data: courses,
-        })
+        res.status(200).json({ success: true, count: trainings.length, data: trainings })
     } catch (error) {
-        next(error)
+        res.status(400).json({ success: false })
     }
 }
 
+// @desc   Get single training
+// @route  GET /api/trainings/:id
+// @access Public
+exports.getTraining = async (req, res, next) => {
+    try {
+        const training = await Training.findById(req.params.id)
+        if (!training) {
+            return res.status(400).json({ success: false, msg: 'Not found' })
+        }
+        res.status(200).json({ success: true, data: training })
+    } catch (error) {
+        next(new ErrorResponse(`Course id (${req.params.id}) not correct`, 404))
+    }
+}
+
+// @desc   Create new training
+// @route  POST /api/trainings/
+// @access Private
 exports.createTraining = async (req, res, next) => {
     try {
         const training = await Training.create(req.body)
         res.status(201).json({ success: true, data: training })
     } catch (error) {
-        next(customError('Training cannot be created due internal server error!', 400))
+        next(error)
     }
 }
 
+// @desc   Update training
+// @route  PUT /api/trainings/:id
+// @access Private
 exports.updateTraining = async (req, res, next) => {
     try {
         const training = await Training.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
+            new: true, // A frissített adatokat kapjuk vissza
+            runValidators: true, // Ellenőrizze a frissített adatokat a modell
         })
         if (!training) {
             return res.status(400).json({ success: false, msg: 'Not found' })
         }
         res.status(200).json({ success: true, data: training })
     } catch (error) {
-        next(customError(`Training cannot be updated with id: ${req.params.id}`, 400))
+        res.status(400).json({ success: false })
     }
 }
 
+// @desc   Delete training
+// @route  DELETE /api/trainings/:id
+// @access Private
 exports.deleteTraining = async (req, res, next) => {
     try {
         const training = await Training.findByIdAndDelete(req.params.id)
@@ -82,6 +76,6 @@ exports.deleteTraining = async (req, res, next) => {
         }
         res.status(200).json({ success: true, data: {} })
     } catch (error) {
-        next(customError(`Training cannot be deleted with id: ${req.params.id}`, 400))
+        res.status(400).json({ success: false })
     }
 }

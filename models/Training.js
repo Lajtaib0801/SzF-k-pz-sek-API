@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const geocoder = require('../utils/geocoder')
+
 const TrainingSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -23,10 +25,7 @@ const TrainingSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        match: [
-            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-            'Please add a valid email',
-        ],
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please add a valid email'],
     },
     address: {
         type: String,
@@ -49,7 +48,13 @@ const TrainingSchema = new mongoose.Schema({
         zipcode: String,
         country: String,
     },
-    Rating: {
+    careers: {
+        // Array of strings
+        type: [String],
+        required: true,
+        enum: ['Web Development', 'Mobile Development', 'UI/UX', 'Data Science', 'Business', 'Other'],
+    },
+    averageRating: {
         type: Number,
         min: [1, 'Rating must be at least 1'],
         max: [10, 'Rating must can not be more than 10'],
@@ -63,26 +68,11 @@ const TrainingSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    careers: {
-        // Array of strings
-        type: [String],
-        required: true,
-        enum: [
-            'Web Development',
-            'Mobile Development',
-            'UI/UX',
-            'Data Science',
-            'Business',
-            'Other',
-        ],
-    },
     createdAt: {
         type: Date,
         default: Date.now,
     },
 })
-
-const geocoder = require('../utils/geocoder')
 
 // A model kidolgozása után használjuk a köztes szoftvert
 // A mentés előtt fog lefutni
@@ -97,9 +87,7 @@ TrainingSchema.pre('save', async function (next) {
         state: loc[0].state,
         zipcode: loc[0].zipcode,
         country: loc[0].countryCode,
-    } // Formázott címünk lesz,
-    // nincs szükség
-    // az eredeti címre
+    } // Formázott címünk lesz, nincs szükség az eredeti címre
     this.address = undefined
     next()
 })

@@ -5,7 +5,4 @@ class ErrorResponse extends Error {
     }
 }
 
-const customError = (msg, statusCode) => {
-    return new ErrorResponse(msg, statusCode)
-}
-module.exports = { ErrorResponse, customError }
+module.exports = ErrorResponse
