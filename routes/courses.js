@@ -4,7 +4,7 @@ const { getCourses, getCourse, addCourse, updateCourse, deleteCourse } = require
 const Course = require('../models/Course')
 const advancedResults = require('../middleware/advancedResults')
 
-const router = express.Router()
+const router = express.Router({ mergeParams: true })
 
 router
     .route('/')
